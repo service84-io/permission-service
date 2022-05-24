@@ -1,0 +1,378 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+openapi: 3.0.1
+info:
+  title: Permission Service
+  description: Manage Permissions
+  contact:
+    email: Tyler@service84.io
+  license:
+    name: The Apache License, Version 2.0
+  version: 1.0.0
+servers:
+- url: http://permission/
+- url: https://permission.service84.io/
+- url: https://permission.api.service84.io/
+- url: https://permission.api.dev.service84.io/
+- url: http://localhost:31204/
+paths:
+  /scopes:
+    get:
+      summary: Get a Page of Scopes
+      tags:
+        - scope
+      security:
+        - BearerAuth: []
+      operationId: get_scopes
+      parameters:
+      - $ref: '#/components/parameters/Authentication'
+      - $ref: '#/components/parameters/PageIndex'
+      - $ref: '#/components/parameters/PageSize'
+      responses:
+        200:
+          $ref: '#/components/responses/ScopePage'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        403:
+          $ref: '#/components/responses/InsufficientPermission'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Create A Scope
+      tags:
+        - scope
+      security:
+        - BearerAuth: []
+      operationId: create_scope
+      requestBody:
+        $ref: '#/components/requestBodies/ScopeData'
+      parameters:
+      - $ref: '#/components/parameters/Authentication'
+      responses:
+        200:
+          $ref: '#/components/responses/Scope'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        403:
+          $ref: '#/components/responses/InsufficientPermission'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /scopes/{id}:
+    get:
+      summary: Get a Scope
+      tags:
+        - scope
+      security:
+        - BearerAuth: []
+      operationId: get_scope
+      parameters:
+      - $ref: '#/components/parameters/ScopeId'
+      - $ref: '#/components/parameters/Authentication'
+      responses:
+        200:
+          $ref: '#/components/responses/Scope'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        403:
+          $ref: '#/components/responses/InsufficientPermission'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Delete a Scope
+      tags:
+        - scope
+      security:
+        - BearerAuth: []
+      operationId: delete_scope
+      parameters:
+      - $ref: '#/components/parameters/ScopeId'
+      - $ref: '#/components/parameters/Authentication'
+      responses:
+        204:
+          description: Scope Deleted
+        400:
+          $ref: '#/components/responses/BadRequest'
+        403:
+          $ref: '#/components/responses/InsufficientPermission'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /subject_scopes:
+    get:
+      summary: Get a Page of Subject Scopes
+      tags:
+        - subject_scope
+      security:
+        - BearerAuth: []
+      operationId: get_subject_scopes
+      parameters:
+      - $ref: '#/components/parameters/Authentication'
+      - $ref: '#/components/parameters/Subject'
+      - $ref: '#/components/parameters/Scope'
+      - $ref: '#/components/parameters/PageIndex'
+      - $ref: '#/components/parameters/PageSize'
+      responses:
+        200:
+          $ref: '#/components/responses/SubjectScopePage'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        403:
+          $ref: '#/components/responses/InsufficientPermission'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /subject_scopes/grant:
+    post:
+      summary: Request an API Key
+      tags:
+        - subject_scope
+      security:
+        - BearerAuth: []
+      operationId: grant_subject_scope
+      requestBody:
+        $ref: '#/components/requestBodies/SubjectScopeData'
+      parameters:
+      - $ref: '#/components/parameters/Authentication'
+      responses:
+        200:
+          $ref: '#/components/responses/SubjectScope'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        403:
+          $ref: '#/components/responses/InsufficientPermission'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /subject_scopes/revoke:
+    post:
+      summary: Request an API Key
+      tags:
+        - subject_scope
+      security:
+        - BearerAuth: []
+      operationId: revoke_subject_scope
+      requestBody:
+        $ref: '#/components/requestBodies/SubjectScopeData'
+      parameters:
+      - $ref: '#/components/parameters/Authentication'
+      responses:
+        204:
+          description: Subject Scope Revoked
+        400:
+          $ref: '#/components/responses/BadRequest'
+        403:
+          $ref: '#/components/responses/InsufficientPermission'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+components:
+  schemas:
+    ScopeData:
+      type: object
+      properties:
+        namespace:
+          type: string
+        name:
+          type: string
+    Scope:
+      allOf:
+        - $ref: '#/components/schemas/ScopeData'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+    SubjectScopeData:
+      type: object
+      properties:
+        subject:
+          type: string
+          format: uuid
+        scope_id:
+          type: string
+          format: uuid
+    SubjectScope:
+      allOf:
+        - $ref: '#/components/schemas/SubjectScopeData'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+    Metadata:
+      type: object
+      properties:
+        cursor:
+          type: string
+        nextCursor:
+          type: string
+        total:
+          type: integer
+        count:
+          type: integer
+    ScopePage:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Scope'
+    SubjectScopePage:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectScope'
+    Error:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+  requestBodies:
+    ScopeData:
+      description: Scope Data
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ScopeData'
+    SubjectScopeData:
+      description: Scope Data
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SubjectScopeData'
+  responses:
+    Scope:
+      description: Successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Scope'
+    ScopePage:
+      description: Successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ScopePage'
+    SubjectScope:
+      description: Successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SubjectScope'
+    SubjectScopePage:
+      description: Successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SubjectScopePage'
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InsufficientPermission:
+      description: Insufficient Permission
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  parameters:
+    Authentication:
+      in: header
+      name: Authentication
+      description: The Authentication Header
+      required: false
+      schema:
+        type: string
+    Subject:
+      in: query
+      name: subject
+      description: Subject ID
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+    Scope:
+      in: query
+      name: scope
+      description: Scope Name
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+    PageIndex:
+      in: query
+      name: page_index
+      description: The index of the page to get
+      required: false
+      schema:
+        type: string
+    PageSize:
+      in: query
+      name: page_size
+      description: The size of the page to get
+      required: false
+      schema:
+        minimum: 1
+        type: integer
+        default: 20
+    ScopeId:
+      in: path
+      name: id
+      description: ID of a Scope
+      required: true
+      schema:
+        type: string
+        format: uuid
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+tags:
+  - name: scope
+    description: Acts on or returns a Scope
+  - name: subject_scope
+    description: Acts on or returns a Subject Scope
