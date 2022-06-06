@@ -17,7 +17,7 @@
       "name": "io.service84.library.standardauth.jwtaf.url",
       "type": "java.lang.String",
       "description": "URL of the JWT provider"
-    }
+    },
     {
       "name":"io.service84.library.standardauth.jwtaf.issuer",
       "type": "java.lang.String",
