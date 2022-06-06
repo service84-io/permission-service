@@ -20,11 +20,13 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import io.service84.library.authutils.services.AuthenticationService;
+import io.service84.permission.errors.ServerError;
 import io.service84.permission.exceptions.EntityNotFound;
 import io.service84.permission.exceptions.InsufficientPermission;
 import io.service84.permission.persistence.model.Scope;
@@ -48,7 +50,14 @@ public class ScopeService {
 
     if (subjectScopes.contains(CreateAnyScope)) {
       Scope scope = new Scope(namespace, name);
-      scope = repository.save(scope);
+
+      try {
+        scope = repository.save(scope);
+      } catch (DataIntegrityViolationException e) {
+        scope =
+            repository.findByNamespaceAndName(namespace, name).orElseThrow(ServerError.supplier());
+      }
+
       return scope;
     }
 
