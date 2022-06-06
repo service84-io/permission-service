@@ -27,12 +27,14 @@ import javax.persistence.criteria.Root;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import io.service84.library.authutils.services.AuthenticationService;
+import io.service84.permission.errors.ServerError;
 import io.service84.permission.exceptions.EntityNotFound;
 import io.service84.permission.exceptions.InsufficientPermission;
 import io.service84.permission.persistence.model.Scope;
@@ -59,6 +61,7 @@ public class SubjectScopeService {
     if (subjectScopes.contains(GetAnySubjectScopes)) {
       return repository.findAll(subjectSelector(subjects).and(scopeSelector(scope)), pageable);
     }
+
     throw new InsufficientPermission();
   }
 
@@ -68,9 +71,19 @@ public class SubjectScopeService {
 
     if (subjectScopes.contains(GrantAnySubjectScope)) {
       SubjectScope subjectScope = new SubjectScope(subject, scope);
-      subjectScope = repository.save(subjectScope);
+
+      try {
+        subjectScope = repository.save(subjectScope);
+      } catch (DataIntegrityViolationException e) {
+        subjectScope =
+            repository
+                .findOne(subjectSelector(List.of(subject)).and(scopeSelector(List.of(scope))))
+                .orElseThrow(ServerError.supplier());
+      }
+
       return subjectScope;
     }
+
     throw new InsufficientPermission();
   }
 
@@ -82,6 +95,7 @@ public class SubjectScopeService {
     if (!subjectScopes.contains(RevokeAnySubjectScope)) {
       throw new InsufficientPermission();
     }
+
     SubjectScope subjectScope =
         repository.findBySubjectAndScope(subject, scope).orElseThrow(EntityNotFound.supplier());
     repository.delete(subjectScope);
