@@ -110,6 +110,28 @@ paths:
           $ref: '#/components/responses/NotFound'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /scopes/qualified_name/{name}:
+    get:
+      summary: Get a Scope by Qualified Name
+      tags:
+        - scope
+      security:
+        - BearerAuth: []
+      operationId: get_scope_by_qualified_name
+      parameters:
+      - $ref: '#/components/parameters/ScopeQualifiedName'
+      - $ref: '#/components/parameters/Authentication'
+      responses:
+        200:
+          $ref: '#/components/responses/Scope'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        403:
+          $ref: '#/components/responses/InsufficientPermission'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /subject_scopes:
     get:
       summary: Get a Page of Subject Scopes
@@ -367,6 +389,13 @@ components:
       schema:
         type: string
         format: uuid
+    ScopeQualifiedName:
+      in: path
+      name: name
+      description: Qualified Name of a Scope
+      required: true
+      schema:
+        type: string
   securitySchemes:
     BearerAuth:
       type: http

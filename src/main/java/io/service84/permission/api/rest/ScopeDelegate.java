@@ -127,6 +127,32 @@ public class ScopeDelegate implements ScopeApiDelegate {
   }
 
   @Override
+  public ResponseEntity<ScopeDTO> getScopeByQualifiedName(String name, String authentication) {
+    try {
+      logger.info(
+          "{} {} {}",
+          authenticationService.getSubject(),
+          requestService.getMethod(),
+          requestService.getURL());
+      Scope scope = scopeService.getScope(name);
+      ResponseEntity<ScopeDTO> result = translator.translate(scope, HttpStatus.OK);
+      logger.info("OK");
+      return result;
+    } catch (EntityNotFound e) {
+      logger.info("Entity Not Found");
+      throw new NotFound();
+    } catch (InsufficientPermission e) {
+      logger.info("Insufficient Permission");
+      throw new InsufficientPermissionResult();
+    } catch (ExceptionalException e) {
+      throw e;
+    } catch (Throwable t) {
+      logger.error(t.getMessage(), t);
+      throw new InternalServerError();
+    }
+  }
+
+  @Override
   public ResponseEntity<ScopePageDTO> getScopes(
       String authentication, String pageIndex, Integer pageSize) {
     try {
